@@ -4,6 +4,32 @@ set -e
 SRC="$(cd "$(dirname "$0")" && pwd)"
 exec > >(tee "$SRC/build.log") 2>&1
 APP="$HOME/Applications/Steam Retriever.app"
+
+# Signing: use your Apple developer certificate from the login keychain so macOS permissions
+# (Accessibility, Screen Recording...) survive rebuilds. Override with SIGN_IDENTITY="<hash or name>".
+pick_identity() {
+  local ids kind h
+  ids=$(security find-identity -v -p codesigning 2>/dev/null); echo "$ids" | grep -q "Apple\|Developer" || ids=$(security find-identity -p codesigning 2>/dev/null)
+  for kind in "Developer ID Application" "Apple Development" "Mac Developer" "Apple Distribution" "3rd Party Mac Developer Application" "iPhone Developer" "Developer ID"; do
+    h=$(echo "$ids" | grep "$kind" | head -1 | awk '{print $2}')
+    if [ -n "$h" ]; then echo "$h"; return; fi
+  done
+}
+sign_app() {
+  local app="$1" id
+  id="${SIGN_IDENTITY:-$(pick_identity)}"
+  if [ -n "$id" ]; then
+    echo "Signing with certificate $id"
+    if codesign --force --deep --timestamp=none --sign "$id" "$app"; then
+      codesign -dv "$app" 2>&1 | grep -E "Authority=|TeamIdentifier|Identifier=" | head -5
+      return
+    fi
+    echo "Certificate signing failed; falling back to an ad-hoc signature."
+  else
+    echo "No signing certificate found; using an ad-hoc signature."
+  fi
+  codesign --force --deep --sign - "$app"
+}
 BUILD="$(mktemp -d)"
 
 if ! xcrun --find swiftc >/dev/null 2>&1; then
@@ -76,10 +102,12 @@ cat > "$APP/Contents/Info.plist" <<'EOF'
   <key>LSMinimumSystemVersion</key><string>14.0</string>
   <key>LSApplicationCategoryType</key><string>public.app-category.games</string>
   <key>NSHighResolutionCapable</key><true/>
+  <key>NSLocalNetworkUsageDescription</key><string>Steam Retriever lets your Apple TV see your games and start them.</string>
+  <key>NSBonjourServices</key><array><string>_steamretriever._tcp</string></array>
   <key>NSRemovableVolumesUsageDescription</key><string>Steam Retriever reads your game libraries on the STEAM drive.</string>
 </dict></plist>
 EOF
-codesign --force --deep --sign - "$APP"
+sign_app "$APP"
 rm -rf "$BUILD"
 
 # Desktop shortcut (Finder alias, falls back to a symlink).

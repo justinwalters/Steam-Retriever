@@ -1,8 +1,9 @@
 import SwiftUI
 import AppKit
+import ApplicationServices
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { !UserDefaults.standard.bool(forKey: "apiEnabled") }
 }
 
 @main
@@ -11,7 +12,8 @@ struct SteamRetrieverApp: App {
     @StateObject private var lib = Library()
 
     init() {
-        UserDefaults.standard.register(defaults: ["quiet": true, "quitOnClose": true, "skipSteam": true])
+        Log.write("start: accessibility trusted=\(AXIsProcessTrusted()) path=\(Bundle.main.bundlePath)")
+        UserDefaults.standard.register(defaults: ["quiet": true, "quitOnClose": true, "skipSteam": true, "apiEnabled": true, "autoFullscreen": true])
     }
 
     var body: some Scene {

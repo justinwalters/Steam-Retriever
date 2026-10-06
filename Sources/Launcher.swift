@@ -69,6 +69,7 @@ final class Launcher {
                     Log.write("game process seen after \(Int(Date().timeIntervalSince(started)))s")
                     splashTask.cancel()
                     libRef.splashGame = nil
+                    Task { await self.fullscreenAfterLaunch(g) }
                 }
                 seen = true
                 missing = 0
@@ -299,6 +300,13 @@ final class Launcher {
     }
 
     // MARK: looking at the machine
+
+    /// Which Steam clients are up and which game, if any, is running right now.
+    func snapshot() async -> (mac: Bool, windows: Bool, playing: String?) {
+        let procs = await processes()
+        let playing = lib.games.first(where: { gameLine($0, in: procs) })?.id
+        return (steamUp(.mac, procs), steamUp(.windows, procs), playing)
+    }
 
     private func processes() async -> [String] {
         await Task.detached { Shell.processes() }.value

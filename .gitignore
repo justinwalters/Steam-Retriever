@@ -2,3 +2,5 @@
 build.log
 *.app
 *.iconset
+*.log
+*.txt.bak
