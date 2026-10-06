@@ -70,6 +70,16 @@ enum Prefs {
     static var quiet: Bool { UserDefaults.standard.bool(forKey: "quiet") }
     static var quitOnClose: Bool { UserDefaults.standard.bool(forKey: "quitOnClose") }
     static var skipSteam: Bool { UserDefaults.standard.bool(forKey: "skipSteam") }
+
+    /// Games the user chose not to put in full screen automatically.
+    static func fullscreenExcluded(_ id: String) -> Bool {
+        (UserDefaults.standard.stringArray(forKey: "noFullscreen") ?? []).contains(id)
+    }
+    static func toggleFullscreenExclusion(_ id: String) {
+        var list = UserDefaults.standard.stringArray(forKey: "noFullscreen") ?? []
+        if let i = list.firstIndex(of: id) { list.remove(at: i) } else { list.append(id) }
+        UserDefaults.standard.set(list, forKey: "noFullscreen")
+    }
 }
 
 extension Meta {

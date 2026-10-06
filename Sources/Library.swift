@@ -12,12 +12,15 @@ final class Library: ObservableObject {
     @Published var splashGame: String?        // non-nil while the "fetching your game" dialog is up
     @Published var splashPhase = ""
     @Published var idleLeft: Int?               // seconds until idle Steam is closed, when counting down
+    @Published var pairingCode: String?         // shown while an Apple TV pairing is open
 
     private var watchers: [DispatchSourceFileSystemObject] = []
     private var rescanTask: Task<Void, Never>?
     private var noticeTask: Task<Void, Never>?
     private var metaInflight = Set<Int>()
     private lazy var launcher = Launcher(lib: self)
+    private lazy var api = APIServer(lib: self)
+    private var pairTask: Task<Void, Never>?
 
     private static let cacheURL: URL = {
         let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -34,6 +37,7 @@ final class Library: ObservableObject {
         rescan()
         installWatchers()
         launcher.startWatchdog()
+        if UserDefaults.standard.bool(forKey: "apiEnabled") { api.start() }
         let nc = NSWorkspace.shared.notificationCenter
         for name in [NSWorkspace.didMountNotification, NSWorkspace.didUnmountNotification] {
             nc.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
@@ -159,6 +163,44 @@ final class Library: ObservableObject {
             return
         }
         launcher.play(g, mode: mode)
+    }
+
+    // MARK: Apple TV API
+    func setAPI(_ on: Bool) {
+        if on { api.start() } else { api.stop(); pairingCode = nil }
+    }
+
+    func beginPairing() {
+        if !UserDefaults.standard.bool(forKey: "apiEnabled") { UserDefaults.standard.set(true, forKey: "apiEnabled") }
+        api.start()
+        let code = api.beginPairing()
+        pairingCode = code
+        notify("Enter \(code) on your Apple TV to pair it.")
+        pairTask?.cancel()
+        pairTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 300_000_000_000)
+            if !Task.isCancelled { self?.api.endPairing(); self?.pairingCode = nil }
+        }
+    }
+
+    func pairingDone() {
+        pairTask?.cancel()
+        pairingCode = nil
+        notify("Apple TV paired.")
+    }
+
+    func snapshot() async -> (mac: Bool, windows: Bool, playing: String?) {
+        await launcher.snapshot()
+    }
+
+    /// Start a game on behalf of the Apple TV app. Returns whether it was accepted and a short state/reason.
+    func startFromAPI(_ g: Game) -> (ok: Bool, message: String) {
+        if let busy = games.first(where: { status[$0.id] != nil }) {
+            if busy.id == g.id { return (true, status[g.id] == "Playing" ? "playing" : "starting") }
+            return (false, "Finish \(busy.name) first.")
+        }
+        launcher.play(g, mode: .auto)
+        return (true, "starting")
     }
 
     func showInFinder(_ g: Game) {

@@ -102,6 +102,9 @@ struct RootView: View {
     }
 
     private var subtitle: String {
+        if let code = lib.pairingCode {
+            return "Apple TV pairing code  " + String(code.prefix(3)) + " " + String(code.suffix(3))
+        }
         let games = "\(filtered.count) \(filtered.count == 1 ? "game" : "games")"
         guard let left = lib.idleLeft, left > 0 else { return games }
         return games + "  \u{00B7}  Steam closes in \(left / 60):" + String(format: "%02d", left % 60)
@@ -179,12 +182,21 @@ struct SettingsMenu: View {
     @AppStorage("quiet") private var quiet = true
     @AppStorage("quitOnClose") private var quitOnClose = true
     @AppStorage("skipSteam") private var skipSteam = true
+    @AppStorage("apiEnabled") private var apiEnabled = true
+    @AppStorage("autoFullscreen") private var autoFullscreen = true
 
     var body: some View {
         Menu {
             Toggle("Start Steam quietly (no windows)", isOn: $quiet)
             Toggle("Close Steam after 5 minutes idle", isOn: $quitOnClose)
             Toggle("Skip Steam for games that don\u{2019}t need it", isOn: $skipSteam)
+            Divider()
+            Text(FullscreenFixer.trusted ? "Full screen control: allowed" : "Full screen control: NOT allowed yet")
+            Toggle("Go full screen after launching a game", isOn: $autoFullscreen)
+            Button("Allow full screen control\u{2026}") { FullscreenFixer.requestAccess(); FullscreenFixer.openAccessibilitySettings() }
+            Divider()
+            Toggle("Allow Apple TV to connect", isOn: Binding(get: { apiEnabled }, set: { apiEnabled = $0; lib.setAPI($0) }))
+            Button("Pair Apple TV\u{2026}") { lib.beginPairing() }
             Divider()
             Button("Rescan library") { lib.rescan() }
             Button("Show STEAM drive in Finder") {
@@ -267,6 +279,9 @@ struct GameCard: View {
                 Button("Try without Steam") { lib.play(game, mode: .direct) }
             }
             Divider()
+            Button(Prefs.fullscreenExcluded(game.id) ? "Allow auto full screen for this game" : "Don\u{2019}t auto full screen this game") {
+                Prefs.toggleFullscreenExclusion(game.id)
+            }
             Button("Show in Finder") { lib.showInFinder(game) }
             Button("Open Steam store page") { lib.openStorePage(game) }
         }
