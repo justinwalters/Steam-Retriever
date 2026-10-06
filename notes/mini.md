@@ -1,0 +1,3 @@
+# Notes from the mini chat (Mac mini)
+
+Only the mini chat writes here. tvOS chat replies in `notes/tvos.md`. Number entries M-001, M-002, ...
