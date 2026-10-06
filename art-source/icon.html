@@ -1,0 +1,19 @@
+<body style="margin:0"><canvas id=o width=1024 height=1024></canvas><script src=art.js></script><script src=rig.js></script><script>
+const o=document.getElementById('o').getContext('2d');const I=build();
+function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
+rr(o,60,60,904,904,200);o.save();o.clip();
+let g=o.createLinearGradient(0,60,0,964);g.addColorStop(0,'#1A2A48');g.addColorStop(1,'#070B16');o.fillStyle=g;o.fillRect(0,0,1024,1024);
+let rg=o.createRadialGradient(512,520,40,512,520,520);rg.addColorStop(0,'rgba(255,190,100,.35)');rg.addColorStop(1,'rgba(255,190,100,0)');o.fillStyle=rg;o.fillRect(0,0,1024,1024);
+o.save();o.translate(512,520);gearPath(o,0,0,420,26,38);o.strokeStyle='rgba(232,176,74,.35)';o.lineWidth=14;o.stroke();o.restore();
+// head
+o.save();o.translate(350,880);o.scale(9.2,9.2);
+o.save();o.translate(34,-46);o.rotate(8*D2R);img(o,I,'ear_far');o.restore();
+img(o,I,'head');
+o.save();o.translate(0,0);
+function eye(x,y,rx,ry){o.fillStyle='#1b100c';o.beginPath();o.ellipse(x,y,rx,ry,0,0,7);o.fill();o.fillStyle='#fff';o.beginPath();o.arc(x+rx*.35,y-ry*.38,rx*.42,0,7);o.fill();o.beginPath();o.arc(x-rx*.4,y+ry*.4,rx*.2,0,7);o.fill();}
+eye(22,-27,6,7.4);eye(38,-29,4.6,6.2);o.restore();
+o.save();o.translate(16,-47);o.rotate(-.2);img(o,I,'goggles');o.restore();
+o.save();o.translate(-1,-41);o.rotate(6*D2R);img(o,I,'ear');o.restore();
+o.restore();
+o.restore();
+</script>
