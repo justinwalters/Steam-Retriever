@@ -1,0 +1,7 @@
+[
+  {"id": "mac-100001", "appid": 100001, "name": "Brass Horizon", "env": "mac", "description": "Sample game: pilot an airship across a clockwork sky.", "running": false},
+  {"id": "mac-100002", "appid": 100002, "name": "Cog & Kettle", "env": "mac", "description": "Sample game: a cozy steam-powered cafe sim.", "running": false},
+  {"id": "windows-200001", "appid": 200001, "name": "Iron Gauge", "env": "windows", "description": "Sample game: tactical rail combat on a frontier line.", "running": false},
+  {"id": "windows-200002", "appid": 200002, "name": "Gaslight Run", "env": "windows", "description": "Sample game: an arcade racer through foggy streets.", "running": false},
+  {"id": "windows-200003", "appid": 200003, "name": "Valve & Vapor", "env": "windows", "description": "Sample game: a puzzle game about routing pressure.", "running": false}
+]
