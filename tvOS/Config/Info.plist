@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Merged with the keys Xcode generates (GENERATE_INFOPLIST_FILE = YES). -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<!-- The Steam Retriever API is plain HTTP on the home network. -->
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Steam Retriever finds your Mac on the home network to show your games and stream them.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_steamretriever._tcp</string>
+		<string>_nvstream._tcp</string>
+	</array>
+</dict>
+</plist>
